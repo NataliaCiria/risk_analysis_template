@@ -1,10 +1,5 @@
 #### Set-up ####
 
-# Open risk_analysis_template.Rproj (RECOMMENDED)
-# Or set working directory to this folder:
-# setwd("[directory]\\risk_analysis_template")
-# install.packages(c("mc2d", "ggplot2"))
-
 # Load packages
 library(mc2d)    # Monte-Carlo simulations
 library(ggplot2) # Plot graphs
