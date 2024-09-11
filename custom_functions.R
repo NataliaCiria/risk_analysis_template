@@ -104,3 +104,30 @@ long_mc_boxplot <- function(data, value = "value", key_label = "key", central_co
       plot.title = element_text(size = 12)
     )
 }
+
+#' Replace NA and Infinite Values in mcnode
+#'
+#' This function replaces NA and infinite values in an mcnode object with a specified value.
+#'
+#' @param mcnode An mcnode object potentially containing NA or infinite values.
+#' @param na_value The value to replace NA and infinite values with. Default is 0.
+#'
+#' @return An mcnode object with NA and infinite values replaced by na_value.
+#'
+#' @export
+#'
+#' @examples
+#' # Create an mcnode with some NA values
+#' x <- mcdata(c(1, 2, NA, 4, Inf, -Inf), type="U")
+#' 
+#' # Replace NA and infinite values with 0
+#' result <- mcnode_na_rm(x)
+#' print(result)
+#'
+#' # Replace NA and infinite values with -1
+#' result_custom <- mcnode_na_rm(x, na_value = -1)
+#' print(result_custom)
+
+mcnode_na_rm <- function(mcnode, na_value = 0) {
+  replace(mcnode, is.na(mcnode) | is.infinite(mcnode), na_value)
+}
