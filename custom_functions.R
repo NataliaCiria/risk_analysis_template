@@ -8,10 +8,16 @@
 #'
 #' @importFrom stats summary
 #' @importFrom utils unlist
-mc_keys_summary <- function(mcnode, data, keys = NULL) {
+mc_keys_summary <- function(mcnode, data, keys = NULL, agg_by = NULL) {
   # If keys is NULL, use factor columns from data as keys
   if (is.null(keys)) {
     keys <- names(data[sapply(data, is.factor)])
+  }
+  
+  #if aggregated by
+  if(!is.null(agg_by)){
+    mcnode<-agg_totals_mc(mcnode,data,by=agg_by)
+    data<-summarise(data,.by=all_of(agg_by))
   }
   
   # Access summary data frame (provided in a list)
@@ -130,4 +136,66 @@ long_mc_boxplot <- function(data, value = "value", key_label = "key", central_co
 
 mcnode_na_rm <- function(mcnode, na_value = 0) {
   replace(mcnode, is.na(mcnode) | is.infinite(mcnode), na_value)
+}
+
+#' Aggregate Totals for Monte Carlo Nodes
+#'
+#' @param mcnode A multivariate Monte Carlo node
+#' @param data A data frame containing the data
+#' @param by A character vector of column names to group by
+#' @param keep_dim Logical, whether to return aggregated variates keeping original dimensions
+#'
+#' @return An aggregated Monte Carlo node
+#'
+#' @examples
+#' # Add examples here
+#'
+#' @export
+agg_totals_mc <- function(mcnode, data, by, keep_dim = FALSE) {
+  # Extract each variate (row) of the multivariate mcnode in a different mcnode
+  variates_list <- list()
+  inv_variates_list <- list()
+  for (i in 1:dim(mcnode)[3]) {
+    variates_list[[i]] <- extractvar(mcnode, i)
+    inv_variates_list[[i]] <- 1 - extractvar(mcnode, i)
+  }
+  
+  # Create index to filter variates by keys
+  key_col <- data %>%
+    select(all_of(by)) %>%
+    unite(everything(), col = "key", sep = ", ", remove = FALSE)
+  
+  key_levels <- unique(key_col$key)
+  
+  for (i in 1:length(key_levels)) {
+    index <- key_col$key %in% key_levels[i]
+    
+    # Aggregate filtered variates "Probability at least one of the events happening"
+    total_lev <- 1 - Reduce("*", inv_variates_list[index])
+    
+    # Aggregate level to total_agg (multivariate node)
+    if (keep_dim) {
+      # One row per original variate
+      agg_index <- mcdata(index, type = "0", nvariates = length(index))
+      
+      if (exists("total_agg")) {
+        total_agg <- total_agg + agg_index * total_lev
+      } else {
+        total_agg <- agg_index * total_lev
+      }
+      
+      key_data <- data
+    } else {
+      # One row per result
+      if (exists("total_agg")) {
+        total_agg <- addvar(total_agg, total_lev)
+      } else {
+        total_agg <- total_lev
+      }
+      new_by <- by
+      key_data <- unique(key_col)
+    }
+  }
+  
+  return(total_agg)
 }

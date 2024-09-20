@@ -87,6 +87,12 @@ result_mc <- alof_false_neg
 # If keys is null, defaults to factor columns
 mc_keys_summary(result_mc, data)
 
+# Aggregate by disease
+agg_totals_mc(result_mc, data, by=c("disease"))
+
+mc_keys_summary(result_mc, data, agg_by=c("disease"))
+
+
 # Transform mc to long object
 # This allows compatibility with most tidyverse functions (such as ggplot)
 result_long <- long_mc(result_mc, data)
