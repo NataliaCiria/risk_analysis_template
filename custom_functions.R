@@ -18,6 +18,7 @@ mc_keys_summary <- function(mcnode, data, keys = NULL, agg_by = NULL) {
   if(!is.null(agg_by)){
     mcnode<-agg_totals_mc(mcnode,data,by=agg_by)
     data<-summarise(data,.by=all_of(agg_by))
+    keys<-agg_by
   }
   
   # Access summary data frame (provided in a list)
